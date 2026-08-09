@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Compounding Effect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --purple-50:#faf5ff;
+    --purple-100:#f3e8ff;
+    --purple-200:#e9d5ff;
+    --purple-400:#c084fc;
+    --purple-500:#a855f7;
+    --purple-600:#9333ea;
+    --purple-700:#7e22ce;
+    --purple-900:#3b0764;
+    --ink:#1e1b2e;
+    --ink-soft:#6b6478;
+    --line:#ecdffb;
+    --bg:#fbf9fd;
+    --white:#ffffff;
+    --danger:#dc2626;
+    --success:#16a34a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:480px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  header{margin-bottom:24px;}
+  header .eyebrow{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--purple-600);
+    margin-bottom:6px;
+  }
+  header h1{
+    font-size:24px;
+    font-weight:800;
+    line-height:1.25;
+    color:var(--ink);
+  }
+  header p{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    line-height:1.5;
+  }
+
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+  .field .hint{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-weight:400;
+    margin-left:4px;
+  }
+  .input-group{
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+  .input-prefix{
+    position:absolute;
+    left:14px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--purple-600);
+    pointer-events:none;
+  }
+  .input-suffix{
+    position:absolute;
+    right:14px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+    pointer-events:none;
+  }
+  input[type="text"], input[type="number"]{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--purple-50);
+    border:1.5px solid transparent;
+    border-radius:12px;
+    padding:13px 14px;
+    outline:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  input.has-prefix{padding-left:34px;}
+  input.has-suffix{padding-right:44px;}
+  input:focus{
+    border-color:var(--purple-500);
+    background:var(--white);
+  }
+
+  .toggle-row{
+    display:flex;
+    gap:8px;
+    background:var(--purple-50);
+    padding:4px;
+    border-radius:12px;
+  }
+  .toggle-row button{
+    flex:1;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:transparent;
+    border:none;
+    border-radius:9px;
+    padding:10px 6px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .toggle-row button.active{
+    background:var(--purple-600);
+    color:var(--white);
+  }
+
+  .btn-primary{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    color:var(--white);
+    background:linear-gradient(135deg, var(--purple-600), var(--purple-700));
+    border:none;
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+    box-shadow:0 8px 20px -6px rgba(147,51,234,0.45);
+    transition:transform .1s ease, box-shadow .15s ease;
+  }
+  .btn-primary:active{
+    transform:scale(0.98);
+    box-shadow:0 4px 10px -4px rgba(147,51,234,0.4);
+  }
+
+  /* Results */
+  .result-hero{
+    background:linear-gradient(135deg, var(--purple-700), var(--purple-900));
+    border-radius:20px;
+    padding:24px 20px;
+    color:var(--white);
+    margin-bottom:16px;
+    display:none;
+  }
+  .result-hero.show{display:block;}
+  .result-hero .label{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--purple-200);
+    margin-bottom:6px;
+  }
+  .result-hero .value{
+    font-size:30px;
+    font-weight:800;
+    line-height:1.2;
+    margin-bottom:14px;
+    word-break:break-word;
+  }
+  .result-hero .breakdown{
+    display:flex;
+    gap:12px;
+    border-top:1px solid rgba(255,255,255,0.15);
+    padding-top:14px;
+  }
+  .result-hero .breakdown div{flex:1;}
+  .result-hero .breakdown .k{
+    font-size:11px;
+    color:var(--purple-200);
+    margin-bottom:3px;
+  }
+  .result-hero .breakdown .v{
+    font-size:15px;
+    font-weight:700;
+  }
+
+  .stats-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .stat-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+  }
+  .stat-card .k{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .stat-card .v{
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .stat-card .v.accent{color:var(--purple-600);}
+
+  .table-wrap{
+    display:none;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+    margin-bottom:16px;
+  }
+  .table-wrap.show{display:block;}
+  .table-wrap h3{
+    font-size:14px;
+    font-weight:700;
+    padding:16px 16px 0;
+    margin-bottom:4px;
+  }
+  .table-scroll{
+    max-height:280px;
+    overflow-y:auto;
+    padding:0 8px 8px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--white);
+    text-align:right;
+    font-weight:600;
+    color:var(--ink-soft);
+    padding:10px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{
+    text-align:right;
+    padding:9px 8px;
+    border-bottom:1px solid var(--purple-50);
+    font-weight:500;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  tbody td:first-child{
+    text-align:left;
+    font-weight:600;
+    color:var(--purple-600);
+  }
+
+  .note{
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+    line-height:1.6;
+    padding:0 8px;
+  }
+
+  .chart-card{
+    display:none;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px 14px 16px;
+    margin-bottom:16px;
+  }
+  .chart-card.show{display:block;}
+  .chart-card h3{
+    font-size:14px;
+    font-weight:700;
+    padding:0 4px;
+    margin-bottom:2px;
+  }
+  .chart-legend{
+    display:flex;
+    gap:16px;
+    padding:0 4px;
+    margin:8px 0 12px;
+    flex-wrap:wrap;
+  }
+  .chart-legend .item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+  .chart-legend .dot{
+    width:9px;
+    height:9px;
+    border-radius:3px;
+    flex-shrink:0;
+  }
+  .chart-wrap{
+    position:relative;
+    height:220px;
+    width:100%;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Investasi &middot; Compounding</div>
+    <h1>Kalkulator Compounding Effect</h1>
+    <p>Lihat bagaimana bunga majemuk melipatgandakan investasimu seiring waktu.</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>Modal Awal <span class="hint">(setoran pertama)</span></label>
+      <div class="input-group">
+        <span class="input-prefix">Rp</span>
+        <input type="text" inputmode="numeric" id="principal" class="has-prefix" value="10.000.000">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Setoran Rutin</label>
+      <div class="input-group">
+        <span class="input-prefix">Rp</span>
+        <input type="text" inputmode="numeric" id="contribution" class="has-prefix" value="1.000.000">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Frekuensi Setoran</label>
+      <div class="toggle-row" id="contribFreqToggle">
+        <button type="button" data-val="12" class="active">Bulanan</button>
+        <button type="button" data-val="1">Tahunan</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Estimasi Return per Tahun</label>
+      <div class="input-group">
+        <input type="number" inputmode="decimal" id="rate" class="has-suffix" value="10" step="0.1">
+        <span class="input-suffix">% / thn</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Jangka Waktu</label>
+      <div class="input-group">
+        <input type="number" inputmode="numeric" id="years" class="has-suffix" value="10">
+        <span class="input-suffix">tahun</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Frekuensi Compounding</label>
+      <div class="toggle-row" id="compoundFreqToggle">
+        <button type="button" data-val="12" class="active">Bulanan</button>
+        <button type="button" data-val="4">Kuartalan</button>
+        <button type="button" data-val="1">Tahunan</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Estimasi Inflasi per Tahun <span class="hint">(opsional)</span></label>
+      <div class="input-group">
+        <input type="number" inputmode="decimal" id="inflation" class="has-suffix" value="3" step="0.1">
+        <span class="input-suffix">% / thn</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="calcBtn">Hitung Compounding</button>
+
+  <div style="height:16px"></div>
+
+  <div class="result-hero" id="resultHero">
+    <div class="label">Total Nilai Akhir</div>
+    <div class="value" id="finalValue">Rp 0</div>
+    <div class="breakdown">
+      <div>
+        <div class="k">Total Setoran</div>
+        <div class="v" id="totalContrib">Rp 0</div>
+      </div>
+      <div>
+        <div class="k">Total Bunga</div>
+        <div class="v" id="totalInterest">Rp 0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid" style="display:none;">
+    <div class="stat-card">
+      <div class="k">Multiplier Modal</div>
+      <div class="v accent" id="multiplier">0x</div>
+    </div>
+    <div class="stat-card">
+      <div class="k">Kontribusi Bunga</div>
+      <div class="v accent" id="interestPortion">0%</div>
+    </div>
+    <div class="stat-card">
+      <div class="k">Nilai Riil (setelah inflasi)</div>
+      <div class="v" id="realValue">Rp 0</div>
+    </div>
+    <div class="stat-card">
+      <div class="k">Daya Beli Tergerus</div>
+      <div class="v" id="erosion">0%</div>
+    </div>
+  </div>
+
+  <div class="chart-card" id="chartCard">
+    <h3>Grafik Pertumbuhan</h3>
+    <div class="chart-legend">
+      <div class="item"><span class="dot" style="background:#7e22ce"></span>Saldo Nominal</div>
+      <div class="item"><span class="dot" style="background:#22c55e"></span>Total Setoran</div>
+      <div class="item"><span class="dot" style="background:#f97316"></span>Nilai Riil (setelah inflasi)</div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="growthChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-wrap" id="tableWrap">
+    <h3>Rincian Per Tahun</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Thn</th><th>Setoran</th><th>Bunga</th><th>Saldo</th><th>Nilai Riil</th></tr>
+        </thead>
+        <tbody id="yearlyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="note">Hasil bersifat estimasi berdasarkan return tetap yang kamu masukkan. Return investasi aktual bisa naik turun dan tidak dijamin.</p>
+
+  <footer style="text-align:center; margin-top:24px; padding-top:16px; border-top:1px solid var(--line);">
+    <p style="font-size:11px; color:var(--ink-soft);">&copy; 2026 Created by Irvan Maulana &amp; Claude AI</p>
+  </footer>
+
+</div>
+
+<script>
+  const principalInput = document.getElementById('principal');
+  const contributionInput = document.getElementById('contribution');
+
+  function formatNumberInput(el){
+    let raw = el.value.replace(/\D/g,'');
+    if(raw === ''){ el.value=''; return; }
+    el.value = Number(raw).toLocaleString('id-ID');
+  }
+  [principalInput, contributionInput].forEach(el=>{
+    el.addEventListener('input', ()=>formatNumberInput(el));
+  });
+
+  function rawNumber(el){
+    return Number(el.value.replace(/\D/g,'')) || 0;
+  }
+
+  function setupToggle(id){
+    const group = document.getElementById(id);
+    const buttons = group.querySelectorAll('button');
+    let selected = Number(group.querySelector('.active').dataset.val);
+    buttons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        buttons.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        selected = Number(btn.dataset.val);
+      });
+    });
+    return { get: ()=>selected };
+  }
+  const contribFreq = setupToggle('contribFreqToggle');
+  const compoundFreq = setupToggle('compoundFreqToggle');
+
+  function formatRupiah(num){
+    const rounded = Math.round(num);
+    return 'Rp ' + rounded.toLocaleString('id-ID');
+  }
+
+  function formatRupiahShort(num){
+    const abs = Math.abs(num);
+    if(abs >= 1e9) return 'Rp ' + (num/1e9).toFixed(1).replace(/\.0$/,'') + 'M';
+    if(abs >= 1e6) return 'Rp ' + (num/1e6).toFixed(1).replace(/\.0$/,'') + 'jt';
+    return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+  }
+
+  let growthChart = null;
+
+  function calculate(){
+    const principal = rawNumber(principalInput);
+    const contribution = rawNumber(contributionInput);
+    const contribPerYear = contribFreq.get();
+    const annualRate = Number(document.getElementById('rate').value) / 100;
+    const years = Math.max(1, Math.round(Number(document.getElementById('years').value)) || 0);
+    const compPerYear = compoundFreq.get();
+    const inflationRate = Number(document.getElementById('inflation').value) / 100 || 0;
+
+    const periodRate = annualRate / compPerYear;
+    const totalPeriods = years * compPerYear;
+    // contribution amount added per compounding period (converted from its own frequency)
+    const contribPerPeriod = (contribution * contribPerYear) / compPerYear;
+
+    let balance = principal;
+    let totalContributed = principal;
+    const yearlyRows = [];
+    let yearContribAccum = 0;
+    let yearStartBalance = principal;
+
+    for(let p = 1; p <= totalPeriods; p++){
+      balance += contribPerPeriod;
+      totalContributed += contribPerPeriod;
+      yearContribAccum += contribPerPeriod;
+      balance *= (1 + periodRate);
+
+      if(p % compPerYear === 0){
+        const yr = p / compPerYear;
+        const yearInterest = balance - yearStartBalance - yearContribAccum;
+        const realValue = balance / Math.pow(1 + inflationRate, yr);
+        yearlyRows.push({
+          year: yr,
+          contrib: yearContribAccum,
+          interest: yearInterest,
+          balance: balance,
+          contributedSoFar: totalContributed,
+          realValue: realValue
+        });
+        yearStartBalance = balance;
+        yearContribAccum = 0;
+      }
+    }
+
+    const totalInterest = balance - totalContributed;
+    const finalRealValue = balance / Math.pow(1 + inflationRate, years);
+    const erosionPct = (1 - (finalRealValue / (balance || 1))) * 100;
+
+    document.getElementById('finalValue').textContent = formatRupiah(balance);
+    document.getElementById('totalContrib').textContent = formatRupiah(totalContributed);
+    document.getElementById('totalInterest').textContent = formatRupiah(totalInterest);
+    document.getElementById('multiplier').textContent = (balance / (totalContributed || 1)).toFixed(2) + 'x';
+    document.getElementById('interestPortion').textContent = ((totalInterest / (balance || 1)) * 100).toFixed(1) + '%';
+    document.getElementById('realValue').textContent = formatRupiah(finalRealValue);
+    document.getElementById('erosion').textContent = erosionPct.toFixed(1) + '%';
+
+    const tbody = document.getElementById('yearlyTableBody');
+    tbody.innerHTML = '';
+    yearlyRows.forEach(row=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${row.year}</td><td>${formatRupiah(row.contrib)}</td><td>${formatRupiah(row.interest)}</td><td>${formatRupiah(row.balance)}</td><td>${formatRupiah(row.realValue)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Chart
+    const labels = ['0', ...yearlyRows.map(r=>String(r.year))];
+    const balanceData = [principal, ...yearlyRows.map(r=>r.balance)];
+    const contribData = [principal, ...yearlyRows.map(r=>r.contributedSoFar)];
+    const realData = [principal, ...yearlyRows.map(r=>r.realValue)];
+
+    if(typeof Chart === 'undefined'){
+      document.getElementById('chartCard').classList.remove('show');
+      const wrap = document.getElementById('chartCard');
+      wrap.classList.add('show');
+      wrap.querySelector('.chart-wrap').innerHTML = '<p style="font-size:12px;color:var(--ink-soft);text-align:center;padding:24px 8px;">Grafik tidak bisa dimuat karena koneksi internet dibutuhkan untuk memuat library chart. Coba buka file ini dengan koneksi internet aktif.</p>';
+    } else {
+      const ctx = document.getElementById('growthChart').getContext('2d');
+    if(growthChart){ growthChart.destroy(); }
+    growthChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Saldo Nominal',
+            data: balanceData,
+            borderColor: '#7e22ce',
+            backgroundColor: 'rgba(126,34,206,0.10)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 3
+          },
+          {
+            label: 'Total Setoran',
+            data: contribData,
+            borderColor: '#22c55e',
+            backgroundColor: 'transparent',
+            borderDash: [6,4],
+            fill: false,
+            tension: 0.2,
+            pointRadius: 0,
+            borderWidth: 2.5
+          },
+          {
+            label: 'Nilai Riil',
+            data: realData,
+            borderColor: '#f97316',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2.5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#3b0764',
+            padding: 10,
+            titleFont: { family: 'Inter', size: 12, weight: '600' },
+            bodyFont: { family: 'Inter', size: 12 },
+            callbacks: {
+              title: (items)=> 'Tahun ke-' + items[0].label,
+              label: (item)=> item.dataset.label + ': ' + formatRupiah(item.raw)
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Inter', size: 10 }, color: '#6b6478', maxTicksLimit: 8 }
+          },
+          y: {
+            grid: { color: '#f3e8ff' },
+            ticks: {
+              font: { family: 'Inter', size: 10 },
+              color: '#6b6478',
+              callback: (val)=> formatRupiahShort(val)
+            }
+          }
+        }
+      }
+    });
+
+    }
+
+    document.getElementById('resultHero').classList.add('show');
+    document.getElementById('statsGrid').style.display = 'grid';
+    document.getElementById('chartCard').classList.add('show');
+    document.getElementById('tableWrap').classList.add('show');
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+  window.addEventListener('load', calculate);
+</script>
+</body>
+</html>
